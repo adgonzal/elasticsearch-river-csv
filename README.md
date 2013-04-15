@@ -35,7 +35,8 @@ Creating the CSV river can be done using:
 	        ],
    	        "field_separator" : ",",
    	        "escape_character" : ";",
-   	        "quote_character" : "'"
+   	        "quote_character" : "'",
+   	        "ignore_first_line" : "true"
 	    },
 	    "index" : {
 	        "index" : "my_csv_data",
