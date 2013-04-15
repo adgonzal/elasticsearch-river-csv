@@ -64,6 +64,7 @@ public class CSVRiver extends AbstractRiverComponent implements River {
     private Thread thread;
     private char escapeCharacter;
     private char quoteCharacter;
+    private boolean ignoreFirstLine;
     private char separator;
     private AtomicInteger onGoingBulks = new AtomicInteger();
     private int bulkThreshold;
@@ -84,6 +85,7 @@ public class CSVRiver extends AbstractRiverComponent implements River {
             escapeCharacter = XContentMapValues.nodeStringValue(csvSettings.get("escape_character"), String.valueOf(CSVReader.DEFAULT_ESCAPE_CHARACTER)).charAt(0);
             separator = XContentMapValues.nodeStringValue(csvSettings.get("field_separator"), String.valueOf(CSVReader.DEFAULT_SEPARATOR)).charAt(0);
             quoteCharacter = XContentMapValues.nodeStringValue(csvSettings.get("quote_character"), String.valueOf(CSVReader.DEFAULT_QUOTE_CHARACTER)).charAt(0);
+            ignoreFirstLine = XContentMapValues.nodeBooleanValue(Boolean.valueOf((String) csvSettings.get("ignore_first_line")), false);
         }
 
         logger.info("creating csv stream river for [{}] with pattern [{}]", folderName, filenamePattern);
@@ -231,7 +233,14 @@ public class CSVRiver extends AbstractRiverComponent implements River {
         private void processFile(File file) throws IOException {
             CSVReader reader = new CSVReader(new FileReader(file), separator, quoteCharacter, escapeCharacter);
             String[] nextLine;
+            boolean firstLine = true;
             while ((nextLine = reader.readNext()) != null) {
+                
+                if(ignoreFirstLine && firstLine) {
+                	firstLine  = !firstLine;
+            		continue;
+            	}
+            	
                 if (nextLine.length > 0 && !(nextLine.length == 1 && nextLine[0].trim().equals(""))) {
                     XContentBuilder builder = XContentFactory.jsonBuilder();
                     builder.startObject();
